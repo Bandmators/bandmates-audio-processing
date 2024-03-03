@@ -1,0 +1,14 @@
+prefix=build/darwin
+exec_prefix=${prefix}
+libdir=build/darwin/lib
+includedir=build/darwin/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 60.39.100
+Requires: 
+Requires.private: libswresample >= 4.13.100, libavutil >= 58.36.101
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: -liconv -lm -framework AudioToolbox -pthread -lz -framework VideoToolbox -framework CoreFoundation -framework CoreMedia -framework CoreVideo -framework CoreServices
+Cflags: -I${includedir}

@@ -1,0 +1,14 @@
+prefix=build/darwin
+exec_prefix=${prefix}
+libdir=build/darwin/lib
+includedir=build/darwin/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 58.36.101
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lm -framework VideoToolbox -framework CoreFoundation -framework CoreMedia -framework CoreVideo -framework CoreServices
+Cflags: -I${includedir}

@@ -1,0 +1,14 @@
+prefix=build/darwin
+exec_prefix=${prefix}
+libdir=build/darwin/lib
+includedir=build/darwin/include
+
+Name: libavformat
+Description: FFmpeg container format library
+Version: 60.20.100
+Requires: 
+Requires.private: libavcodec >= 60.39.100, libswresample >= 4.13.100, libavutil >= 58.36.101
+Conflicts:
+Libs: -L${libdir}  -lavformat 
+Libs.private: -lm -lbz2 -lz -Wl,-framework,CoreFoundation -Wl,-framework,Security
+Cflags: -I${includedir}
