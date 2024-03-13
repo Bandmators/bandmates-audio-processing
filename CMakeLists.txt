@@ -1,21 +1,36 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(bandmates-audio-processing)
+set(SOURCES src/AudioProcessor.cpp src/AudioProcessor.h)
 
-set(SOURCES src/main.cpp)
-add_executable(bandmates-audio-processing ${SOURCES})
+# ANDROID
+set(ANDROID_ABI x86_64)
+set(ANDROID_PLATFROM android-21)
 
 # FFMPEG
-set(ARCH_ABI darwin)
-set(FFMPEG ${CMAKE_SOURCE_DIR}/third-party/ffmpeg/${ARCH_ABI})
+set(FFMPEG_INCLUDE ${CMAKE_SOURCE_DIR}/third-party/ffmpeg/${ANDROID_ABI}/include)
+set(FFMPEG_LIB ${CMAKE_SOURCE_DIR}/third-party/ffmpeg/${ANDROID_ABI}/lib)
 
-file(GLOB FFMPEG_LIB ${FFMPEG}/lib/*.*)
-target_include_directories(bandmates-audio-processing PRIVATE ${FFMPEG}/include)
-target_link_libraries(bandmates-audio-processing ${FFMPEG_LIB})
+find_library(AVCODEC avcodec PATHS ${FFMPEG_LIB})
+find_library(AVDEVICE avdevice PATHS ${FFMPEG_LIB})
+find_library(AVFILTER avfilter PATHS ${FFMPEG_LIB})
+find_library(AVFORMAT avformat PATHS ${FFMPEG_LIB})
+find_library(AVUTIL avutil PATHS ${FFMPEG_LIB})
+find_library(SWRESAMPLE swresample PATHS ${FFMPEG_LIB})
+find_library(SWSCALE swscale PATHS ${FFMPEG_LIB})
 
-add_custom_command(
-    TARGET bandmates-audio-processing
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${ARCH_ABI}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_LIB} ${CMAKE_BINARY_DIR}/${ARCH_ABI}/lib
+set(CMAKE_TOOLCHAIN_FILE /Users/gimdoyeob/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake)
+project(bandmates-audio-processing)
+add_library(bandmates-audio-processing SHARED ${SOURCES})
+
+target_link_libraries(
+    bandmates-audio-processing PRIVATE 
+    ${AVCODEC} 
+    ${AVDEVICE} 
+    ${AVFILTER} 
+    ${AVFORMAT} 
+    ${AVUTIL} 
+    ${SWRESAMPLE} 
+    ${SWSCALE} 
 )
+
+target_include_directories(bandmates-audio-processing PRIVATE ${FFMPEG_INCLUDE})
