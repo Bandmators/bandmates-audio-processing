@@ -1,14 +1,85 @@
+#include <iostream>
+#include <fstream>
+
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+}
+
 #include "AudioProcessor.h"
 
 using namespace std;
 
-vector<int16_t> AudioProcessor::getAudioPCM(const char* audio_file)
+int custom_read_packet(void *opaque, uint8_t *buf, int buf_size)
+{
+    istream *file = static_cast<istream *>(opaque);
+
+    file->read(reinterpret_cast<char *>(buf), buf_size);
+    int bytes_read = file->gcount();
+
+    if (file->eof())
+        return bytes_read;
+    else if (file->bad())
+        return AVERROR(errno);
+
+    return bytes_read;
+}
+
+class AudioStreamBuffer : public streambuf
+{
+public:
+    AudioStreamBuffer(char *source, size_t size)
+    {
+        setg(source, source, source + size);
+    }
+
+    virtual ~AudioStreamBuffer()
+    {
+    }
+};
+
+class AudioInputStream : public istream
+{
+public:
+    AudioInputStream(char *source, size_t size) : istream(&buffer), buffer(source, size)
+    {
+    }
+
+    virtual ~AudioInputStream()
+    {
+    }
+
+private:
+    AudioStreamBuffer buffer;
+};
+
+vector<int16_t> AudioProcessor::getAudioPCM(char *audio, size_t size)
 {
     std::vector<int16_t> pcmData;
 
-    AVFormatContext *format_ctx = nullptr;
+    AVFormatContext *format_ctx = avformat_alloc_context();
+    if (format_ctx == nullptr)
+    {
+        std::cout << "context alloc failed\n";
+        return pcmData;
+    }
 
-    if (avformat_open_input(&format_ctx, audio_file, nullptr, nullptr) != 0)
+    const int packetSize = 4096;
+    uint8_t *io_buffer = (uint8_t *)av_malloc(packetSize);
+    cout << size << endl;
+    AudioInputStream audioInputStream(audio, size);
+    AVIOContext *io_ctx = avio_alloc_context(io_buffer, packetSize, 0, static_cast<void *>(&audioInputStream), &custom_read_packet, NULL, NULL);
+    if (io_ctx == nullptr)
+    {
+        std::cout << "io context alloc failed\n";
+        return pcmData;
+    }
+
+    format_ctx->pb = io_ctx;
+
+    if (avformat_open_input(&format_ctx, NULL, nullptr, nullptr) != 0)
     {
         std::cout << "open failed\n";
         return pcmData;
