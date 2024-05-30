@@ -9,5 +9,7 @@ if [ $1 == "ANDROID" ] ; then
     do
         cmake -DANDROID_ABI=$ABI -DCMAKE_TOOLCHAIN_FILE=/Users/gimdoyeob/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake -Bbuild/$ABI
         cmake --build build/$ABI
+        cp build/$ABI/libbandmates-audio-processing.so /Users/gimdoyeob/AndroidStudioProjects/bandmates-android/app/src/main/cpp/libs/$ABI
     done
+    cp src/AudioProcessor.h /Users/gimdoyeob/AndroidStudioProjects/bandmates-android/app/src/main/cpp/include
 fi
